@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Event Management Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #f7e8e8, #fff8f8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    /* Container */
+    .container {
+      background: #fff;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 16px;
+      box-shadow:
+        0 8px 30px rgba(222, 69, 69, 0.2),
+        0 1px 6px rgba(222, 69, 69, 0.12);
+      padding: 38px 36px 46px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeIn 0.7s forwards;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      text-align: center;
+      font-size: 2.2rem;
+      margin: 0 0 28px 0;
+      color: #b22222;
+      text-shadow: 0 1px 6px rgba(222, 69, 69, 0.4);
+    }
+    /* Section fade transitions */
+    section {
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+    section.hidden {
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      overflow: hidden;
+      transition: opacity 0.3s ease, height 0.3s ease;
+    }
+    /* Login input box */
+    #login-input-box {
+      background: rgba(250, 128, 114, 0.08);
+      border-radius: 16px;
+      box-shadow: inset 0 0 12px rgba(250, 128, 114, 0.25);
+      padding: 30px 28px;
+      margin-bottom: 22px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    #login-input-box:focus-within {
+      border-color: #fa8072;
+      box-shadow:
+        inset 0 0 16px rgba(250, 128, 114, 0.5),
+        0 0 15px rgba(250, 128, 114, 0.3);
+    }
+    /* Input and select styling */
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #b33a3a;
+      margin-bottom: 6px;
+      user-select: none;
+    }
+    input, select {
+      width: 100%;
+      max-width: 350px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: 1.8px solid #eb6e6e;
+      background: rgba(255 255 255 / 0.4);
+      box-shadow: 0 0 6px rgba(250,128,114,0.04);
+      color: #6a1b1b;
+      font-weight: 500;
+      transition:
+        background-color 0.35s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+      outline-offset: 2px;
+      text-align: center;
+    }
+    input::placeholder {
+      color: #b75252;
+      font-weight: 400;
+    }
+    /* translucent while typing on username and password */
+    input#username:not(:placeholder-shown),
+    input#password:not(:placeholder-shown) {
+      background: rgba(255 255 255 / 0.65);
+      transition: background-color 0.3s ease;
+    }
+    input:focus, select:focus {
+      border-color: #b22222;
+      background: #ffe7e7;
+      box-shadow: 0 0 12px 2px #fa8072dd;
+      outline: none;
+      color: #801515;
+      font-weight: 700;
+    }
+    select {
+      cursor: pointer;
+    }
+    /* Button styles */
+    button {
+      width: 100%;
+      max-width: 350px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.1rem;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #fa8072, #b22222);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      filter: drop-shadow(0 4px 4px #d15151aa);
+      transition:
+        background 0.35s ease,
+        transform 0.3s ease,
+        filter 0.3s ease;
+      user-select: none;
+      box-shadow:
+        0 6px 15px rgba(222, 69, 69, 0.4);
+    }
+    button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #b22222, #fa8072);
+      transform: scale(1.06);
+      filter: drop-shadow(0 6px 6px #bd4242cc);
+    }
+    button:disabled {
+      background: #f3b3b3;
+      cursor: not-allowed;
+      filter: none;
+      transform: none;
+    }
+    /* Logout button variation */
+    .logout-btn {
+      margin-top: 30px;
+      background: #7e2a2a;
+      box-shadow: 0 4px 12px rgba(142, 45, 45, 0.35);
+    }
+    .logout-btn:hover {
+      background: #601818;
+      box-shadow: 0 6px 16px rgba(123, 25, 25, 0.7);
+    }
+    /* Lists */
+    ul {
+      list-style: none;
+      padding-left: 0;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 16px;
+      background: #fff0f0;
+      border: 1.5px solid #faa1a1;
+      box-shadow: inset 0 0 12px #f7b7b7aa;
+      margin-top: 12px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #8a2b2b;
+    }
+    ul li {
+      padding: 10px 18px;
+      border-bottom: 1px solid #f5a3a3;
+      position: relative;
+    }
+    /* Custom bullet */
+    ul li::before {
+      content: '•';
+      color: #b22222;
+      font-weight: 900;
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      line-height: 0;
+    }
+    ul li:last-child {
+      border-bottom: none;
+    }
+    /* Inline buttons in coordinator list */
+    .inline-flex {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .small-button {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(222, 69, 69, 0.3);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      user-select: none;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .small-button:focus-visible {
+      outline: 3px solid #fa8072;
+      outline-offset: 2px;
+    }
+    .edit-btn {
+      background-color: #5680e9;
+      box-shadow: 0 5px 15px rgba(86, 128, 233, 0.5);
+    }
+    .edit-btn:hover {
+      background-color: #4466cc;
+      transform: scale(1.05);
+    }
+    .delete-btn {
+      background-color: #e85c5c;
+      box-shadow: 0 5px 15px rgba(232, 92, 92, 0.5);
+    }
+    .delete-btn:hover {
+      background-color: #c74444;
+      transform: scale(1.05);
+    }
+    /* Edit form styling */
+    #editForm {
+      margin-top: 24px;
+      padding: 22px 20px 28px;
+      background: #fff6f6;
+      border-radius: 16px;
+      box-shadow: 0 7px 21px rgba(222, 69, 69, 0.15);
+    }
+    #editForm h3 {
+      margin-top: 0;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      color: #a62c2c;
+      margin-bottom: 14px;
+      user-select: none;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    /* Form rows reuse label/input styles from above */
+
+    /* Notice text */
+    .notice {
+      margin-top: 18px;
+      font-size: 0.9rem;
+      color: #b22222;
+      font-weight: 600;
+      user-select: none;
+      text-align: center;
+      text-shadow: 0 0 2px #faa1a1;
+    }
+    /* Scrollbar */
+    ul::-webkit-scrollbar {
+      width: 8px;
+    }
+    ul::-webkit-scrollbar-track {
+      background: #fff0f0;
+      border-radius: 16px;
+    }
+    ul::-webkit-scrollbar-thumb {
+      background: #fa8072;
+      border-radius: 16px;
+    }
+    /* Responsive */
+    @media (max-width: 500px) {
+      .container {
+        max-width: 95vw;
+        padding: 28px 24px 42px;
+      }
+      input, select, button, .small-button {
+        max-width: 100% !important;
+      }
+    }
+    /* Accessible visually hidden */
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    /* Show password container styling */
+    #show-password-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      max-width: 350px;
+      margin: -14px auto 16px auto;
+      user-select: none;
+      color: #b34c4c;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    #show-password-container input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #b22222;
+      border-radius: 4px;
+    }
+    #show-password-container label {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Event Management Portal">
+
+    <h1>Event Management Portal</h1>
+
+    <!-- Login Section -->
+    <section id="login" aria-label="Login section">
+      <h2 class="visually-hidden">Login</h2>
+      <div id="login-input-box" role="region" aria-label="Login input fields and role selection" tabindex="0">
+
+        <label for="roleSelect">Select Role:</label>
+        <select id="roleSelect" aria-label="Select Role">
+          <option value="admin">Admin</option>
+          <option value="coordinator">Coordinator</option>
+          <option value="student">Student</option>
+        </select>
+
+
+        <label for="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          autocomplete="username"
+          placeholder="Enter your username"
+          aria-required="true"
+          aria-describedby="loginHelp"
+          spellcheck="false"
+        />
+
+
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          aria-required="true"
+        />
+        <div id="show-password-container">
+          <input type="checkbox" id="showPassword" aria-label="Show or hide password" />
+          <label for="showPassword">Show Password</label>
+        </div>
+      </div>
+
+      <button id="loginBtn" onclick="login()" aria-label="Login to portal">Login</button>
+
+      <p id="loginHelp" class="notice" aria-live="polite" aria-atomic="true">
+        Use these credentials:
+      </p>
+      <ul aria-label="Sample credentials for login">
+        <li>Admin - Username: <strong>admin</strong>, Password: <strong>admin123</strong></li>
+        <li>Coordinator - Username: <strong>coord</strong>, Password: <strong>coord123</strong></li>
+        <li>Student - Username: <strong>student</strong>, Password: <strong>stud123</strong></li>
+      </ul>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section id="admin" class="hidden" aria-live="polite" aria-label="Admin Dashboard">
+      <h2>Admin Dashboard</h2>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout from Admin Dashboard">Logout</button>
+
+      <h3>Add Event</h3>
+      <label for="adminEventName">Event Name:</label>
+      <input type="text" id="adminEventName" placeholder="Event name" />
+      <label for="adminDate">Date:</label>
+      <input type="date" id="adminDate" />
+      <label for="adminVenue">Venue:</label>
+      <input type="text" id="adminVenue" placeholder="Venue location" />
+      <label for="adminPrice">Price (₹):</label>
+      <input type="number" id="adminPrice" min="0" step="0.01" placeholder="Price in Rupees" />
+      <button onclick="addEvent()" aria-label="Add Event">Add Event</button>
+
+      <h3>All Events</h3>
+      <ul id="eventList" aria-label="List of all events for admin"></ul>
+    </section>
+
+    <!-- Coordinator Dashboard -->
+    <section id="coordinator" class="hidden" aria-live="polite" aria-label="Coordinator Dashboard">
+      <h2>Coordinator Dashboard</h2>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout from Coordinator Dashboard">Logout</button>
+      <p>Manage Events (Edit/Delete):</p>
+      <ul id="coordEventList" aria-label="Coordinator event management list"></ul>
+      <div id="editForm" class="hidden" tabindex="0" aria-label="Edit event form">
+        <h3>Edit Event</h3>
+        <label for="editEventName">Event Name:</label>
+        <input type="text" id="editEventName" />
+        <label for="editDate">Date:</label>
+        <input type="date" id="editDate" />
+        <label for="editVenue">Venue:</label>
+        <input type="text" id="editVenue" />
+        <label for="editPrice">Price (₹):</label>
+        <input type="number" id="editPrice" min="0" step="0.01" />
+        <button onclick="saveEdit()" aria-label="Save event edit">Save</button>
+        <button onclick="cancelEdit()" style="background-color:#777; margin-top:8px;" aria-label="Cancel event edit">Cancel</button>
+      </div>
+    </section>
+
+    <!-- Student Dashboard -->
+    <section id="student" class="hidden" aria-live="polite" aria-label="Student Dashboard">
+      <h2>Student Dashboard</h2>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout from Student Dashboard">Logout</button>
+
+      <h3>Available Events</h3>
+      <ul id="studentEventList" aria-label="List of available events"></ul>
+
+      <h3>Register</h3>
+      <label for="studentName">Name:</label>
+      <input type="text" id="studentName" placeholder="Your full name" />
+      <label for="studentEventSelect">Select Event:</label>
+      <select id="studentEventSelect" aria-label="Select event to register"></select>
+      <label for="studentPayment">Payment (₹):</label>
+      <input type="number" id="studentPayment" min="0" step="0.01" placeholder="Enter payment amount" />
+      <button onclick="registerStudent()" aria-label="Register for selected event">Register</button>
+
+      <h3>Reminders</h3>
+      <ul id="reminderList" aria-label="Registration reminders"></ul>
+    </section>
+  </div>
+
+  <script>
+    let events = [];
+    let reminders = [];
+
+    const credentials = {
+      admin: { username: 'admin', password: 'admin123' },
+      coordinator: { username: 'coord', password: 'coord123' },
+      student: { username: 'student', password: 'stud123' }
+    };
+
+    // Track current logged in user role
+    let currentRole = null;
+    // For edit functionality
+    let editIndex = null;
+
+    function showSection(sectionId) {
+      document.querySelectorAll('section').forEach(sec => {
+        if (sec.id === sectionId) {
+          sec.classList.remove('hidden');
+          sec.style.pointerEvents = 'auto';
+          sec.style.height = 'auto';
+          sec.style.opacity = '1';
+        } else {
+          sec.classList.add('hidden');
+          sec.style.pointerEvents = 'none';
+          sec.style.height = '0';
+          sec.style.opacity = '0';
+        }
+      });
+      updateAllEventViews();
+    }
+
+    function login() {
+      const role = document.getElementById('roleSelect').value;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+      }
+
+      if (
+        credentials[role] &&
+        username === credentials[role].username &&
+        password === credentials[role].password
+      ) {
+        currentRole = role;
+        clearLoginInputs();
+        showSection(role);
+        if (role === 'coordinator') {
+          renderCoordinatorEvents();
+        }
+      } else {
+        alert('Invalid credentials. Please try again.');
+      }
+    }
+
+    function clearLoginInputs() {
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('showPassword').checked = false;
+      togglePasswordVisibility(); // reset to hidden
+    }
+
+    function addEvent() {
+      const name = document.getElementById('adminEventName').value.trim();
+      const date = document.getElementById('adminDate').value;
+      const venue = document.getElementById('adminVenue').value.trim();
+      const price = document.getElementById('adminPrice').value;
+
+      if (!name || !date || !venue || price === '' || price < 0) {
+        alert('Please fill all fields with valid information.');
+        return;
+      }
+
+      const event = { name, date, venue, price: parseFloat(price).toFixed(2) };
+      events.push(event);
+      updateAllEventViews();
+      alert(`Event "${name}" added successfully!`);
+
+      // Clear input fields
+      document.getElementById('adminEventName').value = '';
+      document.getElementById('adminDate').value = '';
+      document.getElementById('adminVenue').value = '';
+      document.getElementById('adminPrice').value = '';
+    }
+
+    function updateAllEventViews() {
+      updateEventList();
+      updateStudentEvents();
+      updateReminders();
+      if (currentRole === 'coordinator') renderCoordinatorEvents();
+    }
+
+    function updateEventList() {
+      // Admin event list
+      const eventList = document.getElementById('eventList');
+      if (!eventList) return;
+      eventList.innerHTML = '';
+      if (events.length === 0) {
+        eventList.innerHTML = '<li><em>No events available. Please add some.</em></li>';
+        return;
+      }
+      events.forEach((e) => {
+        eventList.innerHTML += `<li>${e.name} - ${e.date} - ${e.venue} - ₹${e.price}</li>`;
+      });
+    }
+
+    function updateStudentEvents() {
+      const studentEventList = document.getElementById('studentEventList');
+      const studentEventSelect = document.getElementById('studentEventSelect');
+      if (!studentEventList || !studentEventSelect) return;
+
+      studentEventList.innerHTML = '';
+      studentEventSelect.innerHTML = '';
+
+      if (events.length === 0) {
+        studentEventList.innerHTML = '<li><em>No events available currently.</em></li>';
+        studentEventSelect.innerHTML = '<option disabled>No events</option>';
+        return;
+      }
+
+      events.forEach((e, i) => {
+        studentEventList.innerHTML += `<li>${e.name} on ${e.date} at ${e.venue} - ₹${e.price}</li>`;
+        studentEventSelect.innerHTML += `<option value="${i}">${e.name}</option>`;
+      });
+    }
+
+    function registerStudent() {
+      const name = document.getElementById('studentName').value.trim();
+      const eventIndex = document.getElementById('studentEventSelect').value;
+      const payment = document.getElementById('studentPayment').value;
+
+      if (!name) {
+        alert('Please enter your name.');
+        return;
+      }
+      if (eventIndex === '' || eventIndex === null) {
+        alert('Please select an event.');
+        return;
+      }
+      if (!payment || payment < 0) {
+        alert('Please enter a valid payment amount.');
+        return;
+      }
+
+      const event = events[eventIndex];
+      if (!event) {
+        alert('Selected event not found.');
+        return;
+      }
+
+      const paymentNum = parseFloat(payment).toFixed(2);
+      if (paymentNum < event.price) {
+        alert(`Payment is less than the event fee (₹${event.price}). Please pay the full amount.`);
+        return;
+      }
+
+      const reminderDate = new Date(event.date);
+      reminderDate.setDate(reminderDate.getDate() - 2);
+      reminders.push({ name: event.name, reminderDate, studentName: name });
+
+      alert(`Registered for "${event.name}". Reminder set for ${reminderDate.toDateString()}.`);
+
+      // Clear inputs
+      document.getElementById('studentName').value = '';
+      document.getElementById('studentPayment').value = '';
+
+      updateReminders();
+    }
+
+    function updateReminders() {
+      const reminderList = document.getElementById('reminderList');
+      if (!reminderList) return;
+
+      reminderList.innerHTML = '';
+      if (reminders.length === 0) {
+        reminderList.innerHTML = '<li><em>No reminders yet.</em></li>';
+        return;
+      }
+      reminders.forEach(rem => {
+        const dString = rem.reminderDate.toDateString();
+        reminderList.innerHTML += `<li>${rem.studentName ? rem.studentName + ' - ' : ''}${rem.name} - Reminder on ${dString}</li>`;
+      });
+    }
+
+    // Coordinator dashboard
+
+    function renderCoordinatorEvents() {
+      const coordEventList = document.getElementById('coordEventList');
+      coordEventList.innerHTML = '';
+      if (events.length === 0) {
+        coordEventList.innerHTML = '<li><em>No events to manage. Please ask admin to add events.</em></li>';
+        return;
+      }
+      events.forEach((e, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${e.name}</strong> - ${e.date} - ${e.venue} - ₹${e.price} 
+          <div class="inline-flex" style="margin-top:6px;">
+            <button class="small-button edit-btn" aria-label="Edit event ${e.name}" onclick="startEdit(${i})">Edit</button>
+            <button class="small-button delete-btn" aria-label="Delete event ${e.name}" onclick="deleteEvent(${i})">Delete</button>
+          </div>
+        `;
+        coordEventList.appendChild(li);
+      });
+    }
+
+    function startEdit(index) {
+      editIndex = index;
+      const event = events[index];
+      document.getElementById('editEventName').value = event.name;
+      document.getElementById('editDate').value = event.date;
+      document.getElementById('editVenue').value = event.venue;
+      document.getElementById('editPrice').value = event.price;
+      document.getElementById('editForm').classList.remove('hidden');
+      document.getElementById('editForm').focus();
+      // Scroll into view nicely
+      document.getElementById('editForm').scrollIntoView({behavior: 'smooth'});
+    }
+
+    function saveEdit() {
+      if (editIndex === null) return;
+      const name = document.getElementById('editEventName').value.trim();
+      const date = document.getElementById('editDate').value;
+      const venue = document.getElementById('editVenue').value.trim();
+      const price = document.getElementById('editPrice').value;
+
+      if (!name || !date || !venue || price === '' || price < 0) {
+        alert('Please fill all fields with valid information to save.');
+        return;
+      }
+
+      events[editIndex] = { name, date, venue, price: parseFloat(price).toFixed(2) };
+      alert(`Event "${name}" updated!`);
+      editIndex = null;
+      document.getElementById('editForm').classList.add('hidden');
+      updateAllEventViews();
+    }
+
+    function cancelEdit() {
+      editIndex = null;
+      document.getElementById('editForm').classList.add('hidden');
+    }
+
+    function deleteEvent(index) {
+      const event = events[index];
+      if (confirm(`Are you sure you want to delete event "${event.name}"? This action cannot be undone.`)) {
+        events.splice(index, 1);
+        alert(`Event "${event.name}" deleted.`);
+        updateAllEventViews();
+      }
+    }
+
+    // Common logout function
+    function logout() {
+      currentRole = null;
+      editIndex = null;
+      clearLoginInputs();
+      showSection('login');
+    }
+
+    // Show/hide password toggle
+    document.getElementById('showPassword').addEventListener('change', togglePasswordVisibility);
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('password');
+      const checkbox = document.getElementById('showPassword');
+      if (checkbox.checked) {
+        pwdInput.type = 'text';
+      } else {
+        pwdInput.type = 'password';
+      }
+    }
+
+    // Initialize: show login
+    showSection('login');
+  </script>
+</body>
+</html>
